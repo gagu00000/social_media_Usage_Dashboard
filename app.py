@@ -333,7 +333,7 @@ def create_sparkline(data, color="#3a86ff"):
         showlegend=False
     )
     return fig
-
+    
 # ================================================================================
 # DATA LOADING
 # ================================================================================
@@ -342,6 +342,7 @@ def create_sparkline(data, color="#3a86ff"):
 def load_data():
     """Load all datasets"""
     try:
+        # Load from same directory as app.py
         main_df = pd.read_csv('main_survey_data.csv')
         daily_df = pd.read_csv('daily_usage_data.csv')
         platform_df = pd.read_csv('platform_metadata.csv')
@@ -351,10 +352,16 @@ def load_data():
         daily_df['date'] = pd.to_datetime(daily_df['date'])
         
         return main_df, daily_df, platform_df
-    except FileNotFoundError:
-        st.error("⚠️ Data files not found. Please ensure CSV files are in the 'data/' folder.")
+    except FileNotFoundError as e:
+        st.error(f"⚠️ Data files not found: {e}")
+        st.info("📁 Please ensure these CSV files are in the same folder as app.py:")
+        st.code("""
+main_survey_data.csv
+daily_usage_data.csv
+platform_metadata.csv
+        """)
         return None, None, None
-
+        
 # ================================================================================
 # MAIN APPLICATION
 # ================================================================================
