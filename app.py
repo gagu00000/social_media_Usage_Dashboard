@@ -335,48 +335,57 @@ def create_sparkline(data, color="#3a86ff"):
     return fig
     
 # ================================================================================
-# DATA LOADING
+# DATA LOADING - CLOUD OPTIMIZED
 # ================================================================================
 
-@st.cache_data
+@st.cache_data(ttl=3600, show_spinner="📊 Loading data...")
 def load_data():
-    """Load all datasets with robust error handling"""
+    """
+    Load datasets optimized for Streamlit Cloud deployment.
+    Daily data is sampled to prevent memory issues.
+    """
     try:
-        # Load CSV files from same directory
+        # ===== MAIN SURVEY DATA =====
         main_df = pd.read_csv('main_survey_data.csv')
-        daily_df = pd.read_csv('daily_usage_data.csv')
+        st.toast(f"✅ Loaded {len(main_df):,} survey records")
+        
+        # ===== DAILY USAGE DATA (SAMPLED) =====
+        # Load only 50K rows for cloud - adjust based on needs
+        DAILY_ROWS_LIMIT = 50000
+        
+        daily_df = pd.read_csv(
+            'daily_usage_data.csv',
+            nrows=DAILY_ROWS_LIMIT
+        )
+        st.toast(f"✅ Loaded {len(daily_df):,} daily records (sampled)")
+        
+        # ===== PLATFORM METADATA =====
         platform_df = pd.read_csv('platform_metadata.csv')
         
-        # Robust date parsing with error handling
-        if 'survey_date' in main_df.columns:
-            main_df['survey_date'] = pd.to_datetime(
-                main_df['survey_date'], 
-                format='mixed',  # Handles mixed formats
-                errors='coerce'  # Invalid dates become NaT
-            )
+        # ===== DATE PARSING =====
+        main_df['survey_date'] = pd.to_datetime(
+            main_df['survey_date'], 
+            format='mixed',
+            errors='coerce'
+        )
         
-        if 'date' in daily_df.columns:
-            daily_df['date'] = pd.to_datetime(
-                daily_df['date'], 
-                format='mixed',
-                errors='coerce'
-            )
+        daily_df['date'] = pd.to_datetime(
+            daily_df['date'], 
+            format='mixed',
+            errors='coerce'
+        )
         
-        # Remove any rows with failed date parsing
+        # Remove invalid dates
         main_df = main_df.dropna(subset=['survey_date'])
         daily_df = daily_df.dropna(subset=['date'])
         
         return main_df, daily_df, platform_df
         
-    except FileNotFoundError as e:
-        st.error("⚠️ Data files not found!")
-        st.info("""
-        📁 Please ensure these files are in the same folder as app.py:
-        - main_survey_data.csv
-        - daily_usage_data.csv  
-        - platform_metadata.csv
-        """)
+    except FileNotFoundError:
+        st.error("⚠️ CSV files not found in the app directory!")
+        st.info("Required files: main_survey_data.csv, daily_usage_data.csv, platform_metadata.csv")
         return None, None, None
+        
     except Exception as e:
         st.error(f"⚠️ Error loading data: {str(e)}")
         return None, None, None
