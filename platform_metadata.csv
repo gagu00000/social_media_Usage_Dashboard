@@ -1,0 +1,11 @@
+platform_id,platform_name,parent_company,platform_category,primary_content,avg_user_age_india,monthly_active_users_india_mn,addiction_index,avg_session_minutes,algorithm_engagement_score,mental_health_concern_level
+P001,Instagram,Meta,Photo/Video Sharing,"Images, Reels, Stories",24.5,230,78,32,85,High
+P002,YouTube,Google,Video Streaming,"Long Videos, Shorts",28.2,450,75,40,82,Medium
+P003,WhatsApp,Meta,Messaging,"Messages, Status",32.5,500,65,28,45,Low
+P004,Facebook,Meta,Social Network,"Posts, Videos, Groups",35.8,350,58,25,70,Medium
+P005,Twitter/X,X Corp,Microblogging,"Tweets, Threads",29.4,25,62,22,68,Medium-High
+P006,Snapchat,Snap Inc,Ephemeral Messaging,"Snaps, Stories",21.2,150,72,18,75,High
+P007,LinkedIn,Microsoft,Professional Network,"Professional Posts, Jobs",32.6,100,35,12,55,Low
+P008,Telegram,Telegram FZ-LLC,Messaging,"Messages, Channels",27.8,120,45,20,40,Low
+P009,ShareChat,ShareChat,Regional Social,"Regional Content, Moj",26.5,180,68,35,72,Medium
+P010,Koo,Koo App,Microblogging,Regional Tweets,34.2,10,40,15,50,Low
