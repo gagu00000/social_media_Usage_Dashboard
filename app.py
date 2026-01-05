@@ -342,9 +342,9 @@ def create_sparkline(data, color="#3a86ff"):
 def load_data():
     """Load all datasets"""
     try:
-        main_df = pd.read_csv('data/main_survey_data.csv')
-        daily_df = pd.read_csv('data/daily_usage_data.csv')
-        platform_df = pd.read_csv('data/platform_metadata.csv')
+        main_df = pd.read_csv('main_survey_data.csv')
+        daily_df = pd.read_csv('daily_usage_data.csv')
+        platform_df = pd.read_csv('platform_metadata.csv')
         
         # Convert date columns
         main_df['survey_date'] = pd.to_datetime(main_df['survey_date'])
