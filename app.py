@@ -340,26 +340,45 @@ def create_sparkline(data, color="#3a86ff"):
 
 @st.cache_data
 def load_data():
-    """Load all datasets"""
+    """Load all datasets with robust error handling"""
     try:
-        # Load from same directory as app.py
+        # Load CSV files from same directory
         main_df = pd.read_csv('main_survey_data.csv')
         daily_df = pd.read_csv('daily_usage_data.csv')
         platform_df = pd.read_csv('platform_metadata.csv')
         
-        # Convert date columns
-        main_df['survey_date'] = pd.to_datetime(main_df['survey_date'])
-        daily_df['date'] = pd.to_datetime(daily_df['date'])
+        # Robust date parsing with error handling
+        if 'survey_date' in main_df.columns:
+            main_df['survey_date'] = pd.to_datetime(
+                main_df['survey_date'], 
+                format='mixed',  # Handles mixed formats
+                errors='coerce'  # Invalid dates become NaT
+            )
+        
+        if 'date' in daily_df.columns:
+            daily_df['date'] = pd.to_datetime(
+                daily_df['date'], 
+                format='mixed',
+                errors='coerce'
+            )
+        
+        # Remove any rows with failed date parsing
+        main_df = main_df.dropna(subset=['survey_date'])
+        daily_df = daily_df.dropna(subset=['date'])
         
         return main_df, daily_df, platform_df
+        
     except FileNotFoundError as e:
-        st.error(f"⚠️ Data files not found: {e}")
-        st.info("📁 Please ensure these CSV files are in the same folder as app.py:")
-        st.code("""
-main_survey_data.csv
-daily_usage_data.csv
-platform_metadata.csv
+        st.error("⚠️ Data files not found!")
+        st.info("""
+        📁 Please ensure these files are in the same folder as app.py:
+        - main_survey_data.csv
+        - daily_usage_data.csv  
+        - platform_metadata.csv
         """)
+        return None, None, None
+    except Exception as e:
+        st.error(f"⚠️ Error loading data: {str(e)}")
         return None, None, None
         
 # ================================================================================
