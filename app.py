@@ -566,7 +566,7 @@ def main():
                 x=0.5, y=0.5, font_size=16, showarrow=False,
                 font=dict(color='white')
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Screen Time by Risk Category - Bar Chart
@@ -584,7 +584,7 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Avg Screen Time by Risk Category"))
             fig.update_layout(xaxis_title="Hours per Day", yaxis_title="")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Insight Box
         high_risk_screen = filtered_df[filtered_df['risk_category'] == 'High']['avg_daily_screen_time_hrs'].mean()
@@ -617,7 +617,7 @@ def main():
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.dataframe(summary_stats, use_container_width=True, hide_index=True)
+            st.dataframe(summary_stats, width='stretch', hide_index=True)
     
     # ==================== TAB 2: DEMOGRAPHICS ====================
     with tabs[1]:
@@ -633,7 +633,7 @@ def main():
                 labels={'age': 'Age', 'count': 'Number of Users'}
             )
             fig.update_layout(**get_chart_layout("Age Distribution"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Gender Distribution - Pie Chart
@@ -646,7 +646,7 @@ def main():
                 textfont=dict(color='white')
             )])
             fig.update_layout(**get_chart_layout("Gender Distribution"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         col1, col2 = st.columns(2)
         
@@ -665,7 +665,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Risk Distribution by Age Group"))
             fig.update_layout(barmode='group', xaxis_title="Age Group", yaxis_title="Count")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Education - Lollipop Chart
@@ -689,7 +689,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Education Level Distribution"))
             fig.update_layout(xaxis_title="Number of Users", yaxis_title="")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Occupation Breakdown - Stacked Bar
         st.markdown("#### 💼 Occupation vs Screen Time Category")
@@ -707,7 +707,7 @@ def main():
         
         fig.update_layout(**get_chart_layout("Screen Time Category by Occupation (%)"))
         fig.update_layout(barmode='stack', xaxis_title="Occupation", yaxis_title="Percentage")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
     
     # ==================== TAB 3: PLATFORM ANALYSIS ====================
     with tabs[2]:
@@ -730,7 +730,7 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Primary Platform Usage"))
             fig.update_layout(xaxis_title="Number of Users", yaxis_title="")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Anxiety by Platform - Grouped Bar
@@ -755,7 +755,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Mental Health Scores by Platform"))
             fig.update_layout(barmode='group', xaxis_title="Platform", yaxis_title="Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Treemap - Platform by Region
         st.markdown("#### 🌳 Platform Usage Hierarchy")
@@ -771,7 +771,7 @@ def main():
         )
         fig.update_layout(**get_chart_layout("Platform Distribution by Region", height=500))
         fig.update_traces(textfont=dict(color='white'))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Sunburst - Platform > Usage Type > Risk
         st.markdown("#### 🌞 Platform → Screen Time → Risk Hierarchy")
@@ -789,7 +789,7 @@ def main():
         )
         fig.update_layout(**get_chart_layout("Platform → Usage → Risk Breakdown", height=500))
         fig.update_traces(textfont=dict(color='white'))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
     
     # ==================== TAB 4: TEMPORAL ANALYSIS ====================
     with tabs[3]:
@@ -830,7 +830,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Screen Time Trend"))
             fig.update_layout(xaxis_title="Date", yaxis_title="Hours")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Area Chart - Anxiety Trend
@@ -847,7 +847,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Anxiety Score Trend"))
             fig.update_layout(xaxis_title="Date", yaxis_title="Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Day of Week Analysis
         st.markdown("#### 📅 Day of Week Patterns")
@@ -871,7 +871,7 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Avg Screen Time by Day"))
             fig.update_layout(xaxis_title="", yaxis_title="Hours")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Calendar Heatmap (simplified as monthly heatmap)
@@ -892,7 +892,7 @@ def main():
                 hovertemplate='%{y}, %{x}<br>Screen Time: %{z:.1f} hrs<extra></extra>'
             ))
             fig.update_layout(**get_chart_layout("Weekly Usage Heatmap (Calendar View)"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     
     # ==================== TAB 5: MENTAL HEALTH ====================
     with tabs[4]:
@@ -909,7 +909,7 @@ def main():
             )
             fig.update_layout(**get_chart_layout("Anxiety Score Distribution by Age"))
             fig.update_layout(showlegend=False, xaxis_title="Age Group", yaxis_title="Anxiety Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Violin Plot - Depression by Platform
@@ -924,7 +924,7 @@ def main():
             )
             fig.update_layout(**get_chart_layout("Depression Score by Platform"))
             fig.update_layout(showlegend=False, xaxis_title="Platform", yaxis_title="Depression Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Radar Chart - Mental Health Profile
         st.markdown("#### 🎯 Mental Health Profile by Risk Category")
@@ -963,7 +963,7 @@ def main():
                 angularaxis=dict(gridcolor='rgba(58,134,255,0.2)')
             )
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # T-test Analysis
         st.markdown("#### 📊 Statistical Validation")
@@ -1023,7 +1023,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Night Usage vs Sleep Quality"))
             fig.update_layout(xaxis_title="Night Usage (hrs)", yaxis_title="Sleep Quality Score (lower=better)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Heatmap - Sleep Quality vs Anxiety vs Screen Time
@@ -1055,7 +1055,7 @@ def main():
             ))
             fig.update_layout(**get_chart_layout("Sleep Quality × Screen Time → Anxiety"))
             fig.update_layout(xaxis_title="Screen Time (hrs)", yaxis_title="Sleep Quality")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Sleep Hours Distribution by Platform
         st.markdown("#### 💤 Sleep Hours by Platform")
@@ -1069,7 +1069,7 @@ def main():
         )
         fig.update_layout(**get_chart_layout("Sleep Hours Distribution by Platform"))
         fig.update_layout(showlegend=False, xaxis_title="Platform", yaxis_title="Sleep Hours")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
     
     # ==================== TAB 7: CORRELATIONS ====================
     with tabs[6]:
@@ -1100,7 +1100,7 @@ def main():
             hovertemplate='%{y} vs %{x}<br>Correlation: %{z:.2f}<extra></extra>'
         ))
         fig.update_layout(**get_chart_layout("Correlation Matrix", height=500))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         col1, col2 = st.columns(2)
         
@@ -1119,7 +1119,7 @@ def main():
             )
             fig.update_layout(**get_chart_layout("Screen Time vs Anxiety vs Followers"))
             fig.update_layout(xaxis_title="Screen Time (hrs)", yaxis_title="Anxiety Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Parallel Coordinates
@@ -1140,7 +1140,7 @@ def main():
                 }
             )
             fig.update_layout(**get_chart_layout("Parallel Coordinates Analysis", height=400))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
     
     # ==================== TAB 8: GEOGRAPHIC ====================
     with tabs[7]:
@@ -1176,7 +1176,7 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Average Risk Score by State"))
             fig.update_layout(xaxis_title="Risk Score", yaxis_title="")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Point Map - User Locations
@@ -1209,7 +1209,7 @@ def main():
                 lonaxis_range=[68, 98]
             )
             fig.update_layout(**get_chart_layout("User Distribution Map (India)", height=400))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Regional Comparison
         st.markdown("#### 🌏 Regional Comparison")
@@ -1236,7 +1236,7 @@ def main():
         
         fig.update_layout(**get_chart_layout("Key Metrics by Region"))
         fig.update_layout(barmode='group', xaxis_title="Region", yaxis_title="Score")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
     
     # ==================== TAB 9: ML PREDICTIONS ====================
     with tabs[8]:
@@ -1283,7 +1283,7 @@ def main():
             ))
             fig.update_layout(**get_chart_layout("Confusion Matrix"))
             fig.update_layout(xaxis_title="Predicted", yaxis_title="Actual")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # ROC Curve
@@ -1312,7 +1312,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("ROC Curves"))
             fig.update_layout(xaxis_title="False Positive Rate", yaxis_title="True Positive Rate")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         col1, col2 = st.columns(2)
         
@@ -1333,7 +1333,7 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Feature Importance"))
             fig.update_layout(xaxis_title="Importance", yaxis_title="")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Learning Curves
@@ -1361,7 +1361,7 @@ def main():
             ))
             fig.update_layout(**get_chart_layout("Learning Curves"))
             fig.update_layout(xaxis_title="Training Size", yaxis_title="Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Dimensionality Reduction
         st.markdown("#### 🔬 User Clustering Visualization (PCA)")
@@ -1383,7 +1383,7 @@ def main():
             opacity=0.6
         )
         fig.update_layout(**get_chart_layout(f"PCA Visualization (Explained Var: {sum(pca.explained_variance_ratio_)*100:.1f}%)"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
     
     # ==================== TAB 10: ETHICS ====================
     with tabs[9]:
@@ -1417,7 +1417,7 @@ def main():
             ))
             fig.update_layout(**get_chart_layout("Risk Score by Gender"))
             fig.update_layout(xaxis_title="Gender", yaxis_title="Avg Risk Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             # Age Group Bias Check
@@ -1435,7 +1435,7 @@ def main():
             ))
             fig.update_layout(**get_chart_layout("Risk Score by Age Group"))
             fig.update_layout(xaxis_title="Age Group", yaxis_title="Avg Risk Score")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Sample Size Confidence
         st.markdown("#### 📊 Data Confidence Indicators")
