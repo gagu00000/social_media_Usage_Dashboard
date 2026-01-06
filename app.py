@@ -1,9 +1,8 @@
-
 # ================================================================================
 # 🧠 SOCIAL MEDIA USAGE & MENTAL HEALTH — INTELLIGENCE DASHBOARD
 # ================================================================================
-# Author: [Gagandeep Singh]
-# Date: [27-12-25]
+# Author: [Your Name]
+# Date: [Date]
 # Description: Comprehensive analytics dashboard analyzing social media usage 
 #              patterns and their impact on mental health in India
 # ================================================================================
@@ -19,7 +18,6 @@ from sklearn.model_selection import train_test_split, learning_curve
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report
 from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from scipy import stats
 import warnings
@@ -54,7 +52,8 @@ COLORS = {
     'text_muted': '#8facc4',
 }
 
-CHART_COLORS = ['#3a86ff', '#4cc9f0', '#4ade80', '#fb923c', '#f87171',                 '#a78bfa', '#7209b7', '#fbbf24', '#ec4899', '#14b8a6']
+CHART_COLORS = ['#3a86ff', '#4cc9f0', '#4ade80', '#fb923c', '#f87171', 
+                '#a78bfa', '#7209b7', '#fbbf24', '#ec4899', '#14b8a6']
 
 RISK_COLORS = {
     'Low': '#4ade80',
@@ -314,82 +313,45 @@ def render_divider():
     """Render a styled divider"""
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
-def create_sparkline(data, color="#3a86ff"):
-    """Create a simple sparkline"""
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        y=data, mode='lines',
-        line=dict(color=color, width=2),
-        fill='tozeroy',
-        fillcolor=f'rgba{tuple(int(color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4)) + (0.2,)}'
-    ))
-    fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0),
-        height=50, width=150,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(visible=False),
-        yaxis=dict(visible=False),
-        showlegend=False
-    )
-    return fig
-    
 # ================================================================================
-# DATA LOADING - CLOUD OPTIMIZED
+# DATA LOADING - OPTIMIZED FOR CLOUD
 # ================================================================================
 
-@st.cache_data(ttl=3600, show_spinner="📊 Loading data...")
+@st.cache_data(ttl=3600)
 def load_data():
-    """
-    Load datasets optimized for Streamlit Cloud deployment.
-    Daily data is sampled to prevent memory issues.
-    """
+    """Load all datasets with optimization for cloud deployment"""
     try:
-        # ===== MAIN SURVEY DATA =====
+        # Load main survey data (5,000 rows)
         main_df = pd.read_csv('main_survey_data.csv')
-        st.toast(f"✅ Loaded {len(main_df):,} survey records")
         
-        # ===== DAILY USAGE DATA (SAMPLED) =====
-        # Load only 50K rows for cloud - adjust based on needs
-        DAILY_ROWS_LIMIT = 50000
+        # Load daily data - LIMITED to 50K rows for performance
+        daily_df = pd.read_csv('daily_usage_data.csv', nrows=50000)
         
-        daily_df = pd.read_csv(
-            'daily_usage_data.csv',
-            nrows=DAILY_ROWS_LIMIT
-        )
-        st.toast(f"✅ Loaded {len(daily_df):,} daily records (sampled)")
-        
-        # ===== PLATFORM METADATA =====
+        # Load platform metadata
         platform_df = pd.read_csv('platform_metadata.csv')
         
-        # ===== DATE PARSING =====
-        main_df['survey_date'] = pd.to_datetime(
-            main_df['survey_date'], 
-            format='mixed',
-            errors='coerce'
-        )
+        # Parse dates safely
+        if 'survey_date' in main_df.columns:
+            main_df['survey_date'] = pd.to_datetime(
+                main_df['survey_date'], 
+                errors='coerce'
+            )
         
-        daily_df['date'] = pd.to_datetime(
-            daily_df['date'], 
-            format='mixed',
-            errors='coerce'
-        )
+        if 'date' in daily_df.columns:
+            daily_df['date'] = pd.to_datetime(
+                daily_df['date'], 
+                errors='coerce'
+            )
         
-        # Remove invalid dates
+        # Drop rows with invalid dates
         main_df = main_df.dropna(subset=['survey_date'])
         daily_df = daily_df.dropna(subset=['date'])
         
         return main_df, daily_df, platform_df
         
-    except FileNotFoundError:
-        st.error("⚠️ CSV files not found in the app directory!")
-        st.info("Required files: main_survey_data.csv, daily_usage_data.csv, platform_metadata.csv")
+    except Exception:
         return None, None, None
-        
-    except Exception as e:
-        st.error(f"⚠️ Error loading data: {str(e)}")
-        return None, None, None
-        
+
 # ================================================================================
 # MAIN APPLICATION
 # ================================================================================
@@ -398,7 +360,16 @@ def main():
     # Load data
     main_df, daily_df, platform_df = load_data()
     
-    if main_df is None:
+    # Error handling
+    if main_df is None or daily_df is None or platform_df is None:
+        st.error("⚠️ Failed to load data files!")
+        st.markdown("""
+        ### 📁 Required Files
+        Please ensure these CSV files are in your repository:
+        - `main_survey_data.csv`
+        - `daily_usage_data.csv`
+        - `platform_metadata.csv`
+        """)
         st.stop()
     
     # ==================== HEADER ====================
@@ -459,10 +430,9 @@ def main():
         st.markdown("---")
         st.markdown("### 📊 Data Info")
         st.info(f"""
-        **Last Updated:** {main_df['survey_date'].max().strftime('%Y-%m-%d')}  
-        **Source:** Simulated Survey Data  
+        **Users:** {len(main_df):,}  
+        **Daily Records:** {len(daily_df):,}  
         **Period:** Jan - Jun 2024
-        **Build By- Gagandeep Singh
         """)
     
     # Apply filters
@@ -576,7 +546,7 @@ def main():
                 x=0.5, y=0.5, font_size=16, showarrow=False,
                 font=dict(color='white')
             )
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Screen Time by Risk Category - Bar Chart
@@ -594,18 +564,20 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Avg Screen Time by Risk Category"))
             fig.update_layout(xaxis_title="Hours per Day", yaxis_title="")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         # Insight Box
-        high_risk_screen = filtered_df[filtered_df['risk_category'] == 'High']['avg_daily_screen_time_hrs'].mean()
-        low_risk_screen = filtered_df[filtered_df['risk_category'] == 'Low']['avg_daily_screen_time_hrs'].mean()
-        render_insight_box(
-            "📊 Key Insight",
-            f"High-risk users spend <b>{high_risk_screen:.1f} hours</b> on social media daily, "
-            f"which is <b>{((high_risk_screen/low_risk_screen - 1) * 100):.0f}% more</b> than low-risk users "
-            f"({low_risk_screen:.1f} hours). This indicates a strong correlation between screen time and mental health risk.",
-            COLORS['primary']
-        )
+        if len(filtered_df[filtered_df['risk_category'] == 'High']) > 0 and len(filtered_df[filtered_df['risk_category'] == 'Low']) > 0:
+            high_risk_screen = filtered_df[filtered_df['risk_category'] == 'High']['avg_daily_screen_time_hrs'].mean()
+            low_risk_screen = filtered_df[filtered_df['risk_category'] == 'Low']['avg_daily_screen_time_hrs'].mean()
+            if low_risk_screen > 0:
+                render_insight_box(
+                    "📊 Key Insight",
+                    f"High-risk users spend <b>{high_risk_screen:.1f} hours</b> on social media daily, "
+                    f"which is <b>{((high_risk_screen/low_risk_screen - 1) * 100):.0f}% more</b> than low-risk users "
+                    f"({low_risk_screen:.1f} hours). This indicates a strong correlation between screen time and mental health risk.",
+                    COLORS['primary']
+                )
         
         # Summary Statistics Table
         st.markdown("### 📋 Summary Statistics")
@@ -627,7 +599,7 @@ def main():
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.dataframe(summary_stats, width='stretch', hide_index=True)
+            st.dataframe(summary_stats, use_container_width=True, hide_index=True)
     
     # ==================== TAB 2: DEMOGRAPHICS ====================
     with tabs[1]:
@@ -643,7 +615,7 @@ def main():
                 labels={'age': 'Age', 'count': 'Number of Users'}
             )
             fig.update_layout(**get_chart_layout("Age Distribution"))
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Gender Distribution - Pie Chart
@@ -656,7 +628,7 @@ def main():
                 textfont=dict(color='white')
             )])
             fig.update_layout(**get_chart_layout("Gender Distribution"))
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         col1, col2 = st.columns(2)
         
@@ -675,7 +647,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Risk Distribution by Age Group"))
             fig.update_layout(barmode='group', xaxis_title="Age Group", yaxis_title="Count")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Education - Lollipop Chart
@@ -699,7 +671,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Education Level Distribution"))
             fig.update_layout(xaxis_title="Number of Users", yaxis_title="")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         # Occupation Breakdown - Stacked Bar
         st.markdown("#### 💼 Occupation vs Screen Time Category")
@@ -717,7 +689,7 @@ def main():
         
         fig.update_layout(**get_chart_layout("Screen Time Category by Occupation (%)"))
         fig.update_layout(barmode='stack', xaxis_title="Occupation", yaxis_title="Percentage")
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     
     # ==================== TAB 3: PLATFORM ANALYSIS ====================
     with tabs[2]:
@@ -740,7 +712,7 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Primary Platform Usage"))
             fig.update_layout(xaxis_title="Number of Users", yaxis_title="")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Anxiety by Platform - Grouped Bar
@@ -765,7 +737,7 @@ def main():
             
             fig.update_layout(**get_chart_layout("Mental Health Scores by Platform"))
             fig.update_layout(barmode='group', xaxis_title="Platform", yaxis_title="Score")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         # Treemap - Platform by Region
         st.markdown("#### 🌳 Platform Usage Hierarchy")
@@ -781,7 +753,7 @@ def main():
         )
         fig.update_layout(**get_chart_layout("Platform Distribution by Region", height=500))
         fig.update_traces(textfont=dict(color='white'))
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
         
         # Sunburst - Platform > Usage Type > Risk
         st.markdown("#### 🌞 Platform → Screen Time → Risk Hierarchy")
@@ -799,110 +771,110 @@ def main():
         )
         fig.update_layout(**get_chart_layout("Platform → Usage → Risk Breakdown", height=500))
         fig.update_traces(textfont=dict(color='white'))
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     
     # ==================== TAB 4: TEMPORAL ANALYSIS ====================
     with tabs[3]:
         st.markdown("### ⏰ Temporal Analysis")
         
-        # Daily trends
-        daily_trends = filtered_daily.groupby('date').agg({
-            'screen_time_hours': 'mean',
-            'anxiety_score_daily': 'mean',
-            'sleep_hours': 'mean',
-            'mood_rating': 'mean'
-        }).reset_index()
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Line Chart - Screen Time Trend
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=daily_trends['date'],
-                y=daily_trends['screen_time_hours'],
-                mode='lines',
-                name='Screen Time',
-                line=dict(color=COLORS['primary'], width=2),
-                fill='tozeroy',
-                fillcolor='rgba(58, 134, 255, 0.1)'
-            ))
+        if len(filtered_daily) > 0:
+            # Daily trends
+            daily_trends = filtered_daily.groupby('date').agg({
+                'screen_time_hours': 'mean',
+                'anxiety_score_daily': 'mean',
+                'sleep_hours': 'mean',
+                'mood_rating': 'mean'
+            }).reset_index()
             
-            # Add moving average
-            daily_trends['ma_7'] = daily_trends['screen_time_hours'].rolling(7).mean()
-            fig.add_trace(go.Scatter(
-                x=daily_trends['date'],
-                y=daily_trends['ma_7'],
-                mode='lines',
-                name='7-Day MA',
-                line=dict(color=COLORS['warning'], width=2, dash='dash')
-            ))
+            col1, col2 = st.columns(2)
             
-            fig.update_layout(**get_chart_layout("Screen Time Trend"))
-            fig.update_layout(xaxis_title="Date", yaxis_title="Hours")
-            st.plotly_chart(fig, width='stretch')
-        
-        with col2:
-            # Area Chart - Anxiety Trend
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=daily_trends['date'],
-                y=daily_trends['anxiety_score_daily'],
-                mode='lines',
-                name='Anxiety',
-                line=dict(color=COLORS['danger'], width=2),
-                fill='tozeroy',
-                fillcolor='rgba(248, 113, 113, 0.2)'
-            ))
+            with col1:
+                # Line Chart - Screen Time Trend
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=daily_trends['date'],
+                    y=daily_trends['screen_time_hours'],
+                    mode='lines',
+                    name='Screen Time',
+                    line=dict(color=COLORS['primary'], width=2),
+                    fill='tozeroy',
+                    fillcolor='rgba(58, 134, 255, 0.1)'
+                ))
+                
+                # Add moving average
+                daily_trends['ma_7'] = daily_trends['screen_time_hours'].rolling(7).mean()
+                fig.add_trace(go.Scatter(
+                    x=daily_trends['date'],
+                    y=daily_trends['ma_7'],
+                    mode='lines',
+                    name='7-Day MA',
+                    line=dict(color=COLORS['warning'], width=2, dash='dash')
+                ))
+                
+                fig.update_layout(**get_chart_layout("Screen Time Trend"))
+                fig.update_layout(xaxis_title="Date", yaxis_title="Hours")
+                st.plotly_chart(fig, use_container_width=True)
             
-            fig.update_layout(**get_chart_layout("Anxiety Score Trend"))
-            fig.update_layout(xaxis_title="Date", yaxis_title="Score")
-            st.plotly_chart(fig, width='stretch')
-        
-        # Day of Week Analysis
-        st.markdown("#### 📅 Day of Week Patterns")
-        
-        dow_analysis = filtered_daily.groupby('day_of_week').agg({
-            'screen_time_hours': 'mean',
-            'anxiety_score_daily': 'mean'
-        }).reindex(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            fig = go.Figure(data=[go.Bar(
-                x=dow_analysis.index,
-                y=dow_analysis['screen_time_hours'],
-                marker_color=[COLORS['warning'] if day in ['Saturday', 'Sunday'] else COLORS['primary'] 
-                             for day in dow_analysis.index],
-                text=dow_analysis['screen_time_hours'].round(1),
-                textposition='auto',
-                textfont=dict(color='white')
-            )])
-            fig.update_layout(**get_chart_layout("Avg Screen Time by Day"))
-            fig.update_layout(xaxis_title="", yaxis_title="Hours")
-            st.plotly_chart(fig, width='stretch')
-        
-        with col2:
-            # Calendar Heatmap (simplified as monthly heatmap)
-            filtered_daily['week'] = filtered_daily['date'].dt.isocalendar().week
-            filtered_daily['dow_num'] = filtered_daily['date'].dt.dayofweek
+            with col2:
+                # Area Chart - Anxiety Trend
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=daily_trends['date'],
+                    y=daily_trends['anxiety_score_daily'],
+                    mode='lines',
+                    name='Anxiety',
+                    line=dict(color=COLORS['danger'], width=2),
+                    fill='tozeroy',
+                    fillcolor='rgba(248, 113, 113, 0.2)'
+                ))
+                
+                fig.update_layout(**get_chart_layout("Anxiety Score Trend"))
+                fig.update_layout(xaxis_title="Date", yaxis_title="Score")
+                st.plotly_chart(fig, use_container_width=True)
             
-            calendar_data = filtered_daily.groupby(['week', 'day_of_week'])['screen_time_hours'].mean().unstack()
-            calendar_data = calendar_data.reindex(columns=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+            # Day of Week Analysis
+            st.markdown("#### 📅 Day of Week Patterns")
             
-            fig = go.Figure(data=go.Heatmap(
-                z=calendar_data.values,
-                x=calendar_data.columns,
-                y=[f"Week {w}" for w in calendar_data.index],
-                colorscale=[[0, '#1a2d47'], [0.5, '#3a86ff'], [1, '#f87171']],
-                text=np.round(calendar_data.values, 1),
-                texttemplate='%{text}',
-                textfont=dict(color='white', size=10),
-                hovertemplate='%{y}, %{x}<br>Screen Time: %{z:.1f} hrs<extra></extra>'
-            ))
-            fig.update_layout(**get_chart_layout("Weekly Usage Heatmap (Calendar View)"))
-            st.plotly_chart(fig, width='stretch')
+            dow_analysis = filtered_daily.groupby('day_of_week').agg({
+                'screen_time_hours': 'mean',
+                'anxiety_score_daily': 'mean'
+            }).reindex(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                fig = go.Figure(data=[go.Bar(
+                    x=dow_analysis.index,
+                    y=dow_analysis['screen_time_hours'],
+                    marker_color=[COLORS['warning'] if day in ['Saturday', 'Sunday'] else COLORS['primary'] 
+                                 for day in dow_analysis.index],
+                    text=dow_analysis['screen_time_hours'].round(1),
+                    textposition='auto',
+                    textfont=dict(color='white')
+                )])
+                fig.update_layout(**get_chart_layout("Avg Screen Time by Day"))
+                fig.update_layout(xaxis_title="", yaxis_title="Hours")
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                # Weekly Heatmap
+                filtered_daily['week'] = filtered_daily['date'].dt.isocalendar().week
+                
+                calendar_data = filtered_daily.groupby(['week', 'day_of_week'])['screen_time_hours'].mean().unstack()
+                calendar_data = calendar_data.reindex(columns=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+                
+                if len(calendar_data) > 0:
+                    fig = go.Figure(data=go.Heatmap(
+                        z=calendar_data.values,
+                        x=calendar_data.columns,
+                        y=[f"Week {w}" for w in calendar_data.index],
+                        colorscale=[[0, '#1a2d47'], [0.5, '#3a86ff'], [1, '#f87171']],
+                        hovertemplate='%{y}, %{x}<br>Screen Time: %{z:.1f} hrs<extra></extra>'
+                    ))
+                    fig.update_layout(**get_chart_layout("Weekly Usage Heatmap"))
+                    st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("No daily data available for the selected filters.")
     
     # ==================== TAB 5: MENTAL HEALTH ====================
     with tabs[4]:
@@ -919,7 +891,7 @@ def main():
             )
             fig.update_layout(**get_chart_layout("Anxiety Score Distribution by Age"))
             fig.update_layout(showlegend=False, xaxis_title="Age Group", yaxis_title="Anxiety Score")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Violin Plot - Depression by Platform
@@ -934,7 +906,7 @@ def main():
             )
             fig.update_layout(**get_chart_layout("Depression Score by Platform"))
             fig.update_layout(showlegend=False, xaxis_title="Platform", yaxis_title="Depression Score")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         # Radar Chart - Mental Health Profile
         st.markdown("#### 🎯 Mental Health Profile by Risk Category")
@@ -946,34 +918,40 @@ def main():
         # Normalize scores for radar
         radar_data = filtered_df.groupby('risk_category')[radar_metrics].mean()
         
-        # Normalize to 0-1 scale
-        radar_normalized = radar_data.copy()
-        for col in radar_metrics:
-            radar_normalized[col] = (radar_data[col] - radar_data[col].min()) / (radar_data[col].max() - radar_data[col].min())
-        
-        fig = go.Figure()
-        
-        for risk_cat in radar_normalized.index:
-            values = radar_normalized.loc[risk_cat].values.tolist()
-            values.append(values[0])  # Close the polygon
+        if len(radar_data) > 0:
+            # Normalize to 0-1 scale
+            radar_normalized = radar_data.copy()
+            for col in radar_metrics:
+                col_min = radar_data[col].min()
+                col_max = radar_data[col].max()
+                if col_max > col_min:
+                    radar_normalized[col] = (radar_data[col] - col_min) / (col_max - col_min)
+                else:
+                    radar_normalized[col] = 0.5
             
-            fig.add_trace(go.Scatterpolar(
-                r=values,
-                theta=radar_labels + [radar_labels[0]],
-                name=risk_cat,
-                line=dict(color=RISK_COLORS.get(risk_cat, '#8facc4'), width=2),
-                fill='toself',
-                fillcolor=f"rgba{tuple(int(RISK_COLORS.get(risk_cat, '#8facc4').lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (0.2,)}"
-            ))
-        
-        fig.update_layout(**get_chart_layout("Mental Health Radar by Risk Category", height=500))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(visible=True, range=[0, 1], gridcolor='rgba(58,134,255,0.2)'),
-                angularaxis=dict(gridcolor='rgba(58,134,255,0.2)')
+            fig = go.Figure()
+            
+            for risk_cat in radar_normalized.index:
+                values = radar_normalized.loc[risk_cat].values.tolist()
+                values.append(values[0])
+                
+                fig.add_trace(go.Scatterpolar(
+                    r=values,
+                    theta=radar_labels + [radar_labels[0]],
+                    name=risk_cat,
+                    line=dict(color=RISK_COLORS.get(risk_cat, '#8facc4'), width=2),
+                    fill='toself',
+                    fillcolor=f"rgba{tuple(int(RISK_COLORS.get(risk_cat, '#8facc4').lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (0.2,)}"
+                ))
+            
+            fig.update_layout(**get_chart_layout("Mental Health Radar by Risk Category", height=500))
+            fig.update_layout(
+                polar=dict(
+                    radialaxis=dict(visible=True, range=[0, 1], gridcolor='rgba(58,134,255,0.2)'),
+                    angularaxis=dict(gridcolor='rgba(58,134,255,0.2)')
+                )
             )
-        )
-        st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         # T-test Analysis
         st.markdown("#### 📊 Statistical Validation")
@@ -1021,26 +999,28 @@ def main():
             )
             
             # Add trendline
-            z = np.polyfit(filtered_df['night_usage_hours'], filtered_df['sleep_quality_score'], 1)
-            p = np.poly1d(z)
-            x_line = np.linspace(filtered_df['night_usage_hours'].min(), filtered_df['night_usage_hours'].max(), 100)
-            fig.add_trace(go.Scatter(
-                x=x_line, y=p(x_line),
-                mode='lines',
-                name='Trend',
-                line=dict(color='white', dash='dash', width=2)
-            ))
+            if len(filtered_df) > 1:
+                z = np.polyfit(filtered_df['night_usage_hours'], filtered_df['sleep_quality_score'], 1)
+                p = np.poly1d(z)
+                x_line = np.linspace(filtered_df['night_usage_hours'].min(), filtered_df['night_usage_hours'].max(), 100)
+                fig.add_trace(go.Scatter(
+                    x=x_line, y=p(x_line),
+                    mode='lines',
+                    name='Trend',
+                    line=dict(color='white', dash='dash', width=2)
+                ))
             
             fig.update_layout(**get_chart_layout("Night Usage vs Sleep Quality"))
             fig.update_layout(xaxis_title="Night Usage (hrs)", yaxis_title="Sleep Quality Score (lower=better)")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
-            # Heatmap - Sleep Quality vs Anxiety vs Screen Time
-            # Create bins
-            filtered_df['screen_bin'] = pd.cut(filtered_df['avg_daily_screen_time_hrs'], 
-                                               bins=[0, 2, 4, 6, 8, 15], 
-                                               labels=['0-2', '2-4', '4-6', '6-8', '8+'])
+            # Heatmap - Sleep Quality vs Screen Time
+            filtered_df['screen_bin'] = pd.cut(
+                filtered_df['avg_daily_screen_time_hrs'], 
+                bins=[0, 2, 4, 6, 8, 15], 
+                labels=['0-2', '2-4', '4-6', '6-8', '8+']
+            )
             
             heatmap_data = filtered_df.pivot_table(
                 values='anxiety_score',
@@ -1049,23 +1029,23 @@ def main():
                 aggfunc='mean'
             )
             
-            # Reorder index
             order = ['Good', 'Moderate', 'Poor', 'Very Poor']
             heatmap_data = heatmap_data.reindex([o for o in order if o in heatmap_data.index])
             
-            fig = go.Figure(data=go.Heatmap(
-                z=heatmap_data.values,
-                x=heatmap_data.columns,
-                y=heatmap_data.index,
-                colorscale=[[0, '#4ade80'], [0.5, '#fbbf24'], [1, '#f87171']],
-                text=np.round(heatmap_data.values, 1),
-                texttemplate='%{text}',
-                textfont=dict(color='white'),
-                hovertemplate='Sleep: %{y}<br>Screen Time: %{x}<br>Avg Anxiety: %{z:.1f}<extra></extra>'
-            ))
-            fig.update_layout(**get_chart_layout("Sleep Quality × Screen Time → Anxiety"))
-            fig.update_layout(xaxis_title="Screen Time (hrs)", yaxis_title="Sleep Quality")
-            st.plotly_chart(fig, width='stretch')
+            if len(heatmap_data) > 0:
+                fig = go.Figure(data=go.Heatmap(
+                    z=heatmap_data.values,
+                    x=heatmap_data.columns,
+                    y=heatmap_data.index,
+                    colorscale=[[0, '#4ade80'], [0.5, '#fbbf24'], [1, '#f87171']],
+                    text=np.round(heatmap_data.values, 1),
+                    texttemplate='%{text}',
+                    textfont=dict(color='white'),
+                    hovertemplate='Sleep: %{y}<br>Screen Time: %{x}<br>Avg Anxiety: %{z:.1f}<extra></extra>'
+                ))
+                fig.update_layout(**get_chart_layout("Sleep Quality × Screen Time → Anxiety"))
+                fig.update_layout(xaxis_title="Screen Time (hrs)", yaxis_title="Sleep Quality")
+                st.plotly_chart(fig, use_container_width=True)
         
         # Sleep Hours Distribution by Platform
         st.markdown("#### 💤 Sleep Hours by Platform")
@@ -1079,7 +1059,7 @@ def main():
         )
         fig.update_layout(**get_chart_layout("Sleep Hours Distribution by Platform"))
         fig.update_layout(showlegend=False, xaxis_title="Platform", yaxis_title="Sleep Hours")
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     
     # ==================== TAB 7: CORRELATIONS ====================
     with tabs[6]:
@@ -1110,7 +1090,7 @@ def main():
             hovertemplate='%{y} vs %{x}<br>Correlation: %{z:.2f}<extra></extra>'
         ))
         fig.update_layout(**get_chart_layout("Correlation Matrix", height=500))
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
         
         col1, col2 = st.columns(2)
         
@@ -1129,11 +1109,12 @@ def main():
             )
             fig.update_layout(**get_chart_layout("Screen Time vs Anxiety vs Followers"))
             fig.update_layout(xaxis_title="Screen Time (hrs)", yaxis_title="Anxiety Score")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Parallel Coordinates
-            parallel_df = filtered_df.sample(min(500, len(filtered_df)))
+            sample_size = min(500, len(filtered_df))
+            parallel_df = filtered_df.sample(sample_size) if len(filtered_df) > sample_size else filtered_df
             
             fig = px.parallel_coordinates(
                 parallel_df,
@@ -1150,7 +1131,7 @@ def main():
                 }
             )
             fig.update_layout(**get_chart_layout("Parallel Coordinates Analysis", height=400))
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
     
     # ==================== TAB 8: GEOGRAPHIC ====================
     with tabs[7]:
@@ -1164,12 +1145,12 @@ def main():
             'user_id': 'count'
         }).reset_index()
         state_data.columns = ['state', 'avg_risk', 'avg_screen_time', 'avg_anxiety', 'user_count']
+        state_data = state_data.sort_values('avg_risk', ascending=True)
         
         col1, col2 = st.columns(2)
         
         with col1:
-            # Choropleth Map (India)
-            # Using bar chart as fallback since India geojson needs separate file
+            # Risk by State - Bar Chart
             fig = go.Figure(data=[go.Bar(
                 x=state_data['avg_risk'],
                 y=state_data['state'],
@@ -1186,7 +1167,7 @@ def main():
             )])
             fig.update_layout(**get_chart_layout("Average Risk Score by State"))
             fig.update_layout(xaxis_title="Risk Score", yaxis_title="")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Point Map - User Locations
@@ -1219,7 +1200,7 @@ def main():
                 lonaxis_range=[68, 98]
             )
             fig.update_layout(**get_chart_layout("User Distribution Map (India)", height=400))
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         # Regional Comparison
         st.markdown("#### 🌏 Regional Comparison")
@@ -1246,7 +1227,7 @@ def main():
         
         fig.update_layout(**get_chart_layout("Key Metrics by Region"))
         fig.update_layout(barmode='group', xaxis_title="Region", yaxis_title="Score")
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     
     # ==================== TAB 9: ML PREDICTIONS ====================
     with tabs[8]:
@@ -1260,140 +1241,118 @@ def main():
         X = filtered_df[feature_cols].fillna(0)
         y = LabelEncoder().fit_transform(filtered_df['risk_category'])
         
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        # Scale features
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        
-        # Train model
-        model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-        model.fit(X_train_scaled, y_train)
-        
-        y_pred = model.predict(X_test_scaled)
-        y_prob = model.predict_proba(X_test_scaled)
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Confusion Matrix
-            cm = confusion_matrix(y_test, y_pred)
-            labels = ['Low', 'Mod-Low', 'Mod-High', 'High']
+        if len(X) > 100:
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             
-            fig = go.Figure(data=go.Heatmap(
-                z=cm,
-                x=labels,
-                y=labels,
-                colorscale=[[0, '#1a2d47'], [1, '#3a86ff']],
-                text=cm,
-                texttemplate='%{text}',
-                textfont=dict(color='white', size=14),
-                hovertemplate='Actual: %{y}<br>Predicted: %{x}<br>Count: %{z}<extra></extra>'
-            ))
-            fig.update_layout(**get_chart_layout("Confusion Matrix"))
-            fig.update_layout(xaxis_title="Predicted", yaxis_title="Actual")
-            st.plotly_chart(fig, width='stretch')
-        
-        with col2:
-            # ROC Curve
-            fig = go.Figure()
+            # Scale features
+            scaler = StandardScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
             
-            for i in range(len(labels)):
-                y_test_binary = (y_test == i).astype(int)
-                y_prob_class = y_prob[:, i]
+            # Train model
+            model = RandomForestClassifier(n_estimators=50, random_state=42, n_jobs=-1)
+            model.fit(X_train_scaled, y_train)
+            
+            y_pred = model.predict(X_test_scaled)
+            y_prob = model.predict_proba(X_test_scaled)
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Confusion Matrix
+                cm = confusion_matrix(y_test, y_pred)
+                labels = ['Low', 'Mod-Low', 'Mod-High', 'High']
                 
-                fpr, tpr, _ = roc_curve(y_test_binary, y_prob_class)
-                roc_auc = auc(fpr, tpr)
+                fig = go.Figure(data=go.Heatmap(
+                    z=cm,
+                    x=labels[:len(cm)],
+                    y=labels[:len(cm)],
+                    colorscale=[[0, '#1a2d47'], [1, '#3a86ff']],
+                    text=cm,
+                    texttemplate='%{text}',
+                    textfont=dict(color='white', size=14),
+                    hovertemplate='Actual: %{y}<br>Predicted: %{x}<br>Count: %{z}<extra></extra>'
+                ))
+                fig.update_layout(**get_chart_layout("Confusion Matrix"))
+                fig.update_layout(xaxis_title="Predicted", yaxis_title="Actual")
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                # ROC Curve
+                fig = go.Figure()
+                
+                labels = ['Low', 'Mod-Low', 'Mod-High', 'High']
+                n_classes = len(np.unique(y_test))
+                
+                for i in range(min(n_classes, len(labels))):
+                    if i < y_prob.shape[1]:
+                        y_test_binary = (y_test == i).astype(int)
+                        y_prob_class = y_prob[:, i]
+                        
+                        fpr, tpr, _ = roc_curve(y_test_binary, y_prob_class)
+                        roc_auc = auc(fpr, tpr)
+                        
+                        fig.add_trace(go.Scatter(
+                            x=fpr, y=tpr,
+                            mode='lines',
+                            name=f'{labels[i]} (AUC={roc_auc:.2f})',
+                            line=dict(color=list(RISK_COLORS.values())[i], width=2)
+                        ))
                 
                 fig.add_trace(go.Scatter(
-                    x=fpr, y=tpr,
+                    x=[0, 1], y=[0, 1],
                     mode='lines',
-                    name=f'{labels[i]} (AUC={roc_auc:.2f})',
-                    line=dict(color=list(RISK_COLORS.values())[i], width=2)
+                    name='Random',
+                    line=dict(color='gray', dash='dash')
                 ))
+                
+                fig.update_layout(**get_chart_layout("ROC Curves"))
+                fig.update_layout(xaxis_title="False Positive Rate", yaxis_title="True Positive Rate")
+                st.plotly_chart(fig, use_container_width=True)
             
-            fig.add_trace(go.Scatter(
-                x=[0, 1], y=[0, 1],
-                mode='lines',
-                name='Random',
-                line=dict(color='gray', dash='dash')
-            ))
+            col1, col2 = st.columns(2)
             
-            fig.update_layout(**get_chart_layout("ROC Curves"))
-            fig.update_layout(xaxis_title="False Positive Rate", yaxis_title="True Positive Rate")
-            st.plotly_chart(fig, width='stretch')
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Feature Importance
-            importance = pd.DataFrame({
-                'feature': feature_cols,
-                'importance': model.feature_importances_
-            }).sort_values('importance', ascending=True)
+            with col1:
+                # Feature Importance
+                importance = pd.DataFrame({
+                    'feature': feature_cols,
+                    'importance': model.feature_importances_
+                }).sort_values('importance', ascending=True)
+                
+                fig = go.Figure(data=[go.Bar(
+                    x=importance['importance'],
+                    y=importance['feature'],
+                    orientation='h',
+                    marker=dict(color=COLORS['primary']),
+                    text=importance['importance'].round(3),
+                    textposition='auto',
+                    textfont=dict(color='white')
+                )])
+                fig.update_layout(**get_chart_layout("Feature Importance"))
+                fig.update_layout(xaxis_title="Importance", yaxis_title="")
+                st.plotly_chart(fig, use_container_width=True)
             
-            fig = go.Figure(data=[go.Bar(                x=importance['importance'],
-                y=importance['feature'],
-                orientation='h',
-                marker=dict(color=COLORS['primary']),
-                text=importance['importance'].round(3),
-                textposition='auto',
-                textfont=dict(color='white')
-            )])
-            fig.update_layout(**get_chart_layout("Feature Importance"))
-            fig.update_layout(xaxis_title="Importance", yaxis_title="")
-            st.plotly_chart(fig, width='stretch')
-        
-        with col2:
-            # Learning Curves
-            train_sizes, train_scores, val_scores = learning_curve(
-                model, X_train_scaled, y_train,
-                train_sizes=np.linspace(0.1, 1.0, 10),
-                cv=5, n_jobs=-1
-            )
-            
-            train_mean = train_scores.mean(axis=1)
-            val_mean = val_scores.mean(axis=1)
-            
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=train_sizes, y=train_mean,
-                mode='lines+markers',
-                name='Training Score',
-                line=dict(color=COLORS['primary'], width=2)
-            ))
-            fig.add_trace(go.Scatter(
-                x=train_sizes, y=val_mean,
-                mode='lines+markers',
-                name='Validation Score',
-                line=dict(color=COLORS['warning'], width=2)
-            ))
-            fig.update_layout(**get_chart_layout("Learning Curves"))
-            fig.update_layout(xaxis_title="Training Size", yaxis_title="Score")
-            st.plotly_chart(fig, width='stretch')
-        
-        # Dimensionality Reduction
-        st.markdown("#### 🔬 User Clustering Visualization (PCA)")
-        
-        # PCA
-        pca = PCA(n_components=2)
-        X_pca = pca.fit_transform(X_train_scaled)
-        
-        pca_df = pd.DataFrame({
-            'PC1': X_pca[:, 0],
-            'PC2': X_pca[:, 1],
-            'risk': [['Low', 'Mod-Low', 'Mod-High', 'High'][i] for i in y_train]
-        })
-        
-        fig = px.scatter(
-            pca_df, x='PC1', y='PC2',
-            color='risk',
-            color_discrete_map=RISK_COLORS,
-            opacity=0.6
-        )
-        fig.update_layout(**get_chart_layout(f"PCA Visualization (Explained Var: {sum(pca.explained_variance_ratio_)*100:.1f}%)"))
-        st.plotly_chart(fig, width='stretch')
+            with col2:
+                # PCA Visualization
+                pca = PCA(n_components=2)
+                X_pca = pca.fit_transform(X_train_scaled)
+                
+                pca_df = pd.DataFrame({
+                    'PC1': X_pca[:, 0],
+                    'PC2': X_pca[:, 1],
+                    'risk': [['Low', 'Mod-Low', 'Mod-High', 'High'][i] if i < 4 else 'Unknown' for i in y_train]
+                })
+                
+                fig = px.scatter(
+                    pca_df, x='PC1', y='PC2',
+                    color='risk',
+                    color_discrete_map=RISK_COLORS,
+                    opacity=0.6
+                )
+                fig.update_layout(**get_chart_layout(f"PCA Visualization (Var: {sum(pca.explained_variance_ratio_)*100:.1f}%)"))
+                st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("Not enough data for ML analysis. Please adjust filters to include more users.")
     
     # ==================== TAB 10: ETHICS ====================
     with tabs[9]:
@@ -1427,7 +1386,7 @@ def main():
             ))
             fig.update_layout(**get_chart_layout("Risk Score by Gender"))
             fig.update_layout(xaxis_title="Gender", yaxis_title="Avg Risk Score")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             # Age Group Bias Check
@@ -1445,7 +1404,7 @@ def main():
             ))
             fig.update_layout(**get_chart_layout("Risk Score by Age Group"))
             fig.update_layout(xaxis_title="Age Group", yaxis_title="Avg Risk Score")
-            st.plotly_chart(fig, width='stretch')
+            st.plotly_chart(fig, use_container_width=True)
         
         # Sample Size Confidence
         st.markdown("#### 📊 Data Confidence Indicators")
@@ -1478,23 +1437,28 @@ def main():
         st.markdown("#### 🔍 Fairness Assessment")
         
         # Calculate disparity ratios
-        male_risk = filtered_df[filtered_df['gender'] == 'Male']['mental_health_risk_score'].mean()
-        female_risk = filtered_df[filtered_df['gender'] == 'Female']['mental_health_risk_score'].mean()
-        
-        young_risk = filtered_df[filtered_df['age_group'] == '18-24']['mental_health_risk_score'].mean()
-        old_risk = filtered_df[filtered_df['age_group'] == '45-54']['mental_health_risk_score'].mean() if '45-54' in filtered_df['age_group'].values else young_risk
+        male_risk = filtered_df[filtered_df['gender'] == 'Male']['mental_health_risk_score'].mean() if 'Male' in filtered_df['gender'].values else 0
+        female_risk = filtered_df[filtered_df['gender'] == 'Female']['mental_health_risk_score'].mean() if 'Female' in filtered_df['gender'].values else 0
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            gender_ratio = male_risk / female_risk if female_risk > 0 else 1
-            status = "✅ Fair" if 0.8 <= gender_ratio <= 1.2 else "⚠️ Review"
-            st.metric("Gender Disparity Ratio", f"{gender_ratio:.2f}", status)
+            if female_risk > 0:
+                gender_ratio = male_risk / female_risk
+                status = "✅ Fair" if 0.8 <= gender_ratio <= 1.2 else "⚠️ Review"
+                st.metric("Gender Disparity Ratio", f"{gender_ratio:.2f}", status)
+            else:
+                st.metric("Gender Disparity Ratio", "N/A")
         
         with col2:
-            age_ratio = young_risk / old_risk if old_risk > 0 else 1
-            status = "✅ Fair" if 0.8 <= age_ratio <= 1.2 else "⚠️ Review"
-            st.metric("Age Disparity Ratio", f"{age_ratio:.2f}", status)
+            young_risk = filtered_df[filtered_df['age_group'] == '18-24']['mental_health_risk_score'].mean() if '18-24' in filtered_df['age_group'].values else 0
+            old_risk = filtered_df[filtered_df['age_group'] == '45-54']['mental_health_risk_score'].mean() if '45-54' in filtered_df['age_group'].values else young_risk
+            if old_risk > 0:
+                age_ratio = young_risk / old_risk
+                status = "✅ Fair" if 0.8 <= age_ratio <= 1.2 else "⚠️ Review"
+                st.metric("Age Disparity Ratio", f"{age_ratio:.2f}", status)
+            else:
+                st.metric("Age Disparity Ratio", "N/A")
         
         with col3:
             overall_std = filtered_df.groupby('region')['mental_health_risk_score'].mean().std()
