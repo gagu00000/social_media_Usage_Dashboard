@@ -2,8 +2,8 @@
 # ================================================================================
 # 🧠 SOCIAL MEDIA USAGE & MENTAL HEALTH — INTELLIGENCE DASHBOARD
 # ================================================================================
-# Author: [Your Name]
-# Date: [Date]
+# Author: [Gagandeep Singh]
+# Date: [27-12-25]
 # Description: Comprehensive analytics dashboard analyzing social media usage 
 #              patterns and their impact on mental health in India
 # ================================================================================
